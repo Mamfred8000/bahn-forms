@@ -14,6 +14,7 @@ def init():
     delay_table = 'zug_verspätungen.xlsx'
 
 def write_dict(d, indent=0):
+## write dict to txt-file
     for key, value in d.items():
         txt_writer.write('\t' * indent + str(key) + '\n')
         if isinstance(value, dict):
@@ -22,6 +23,7 @@ def write_dict(d, indent=0):
             txt_writer.write('\t' * (indent+1) + str(value) + '\n')
 
 def get_fields():
+## read fields of formula from pdf
     global txt_file
     global txt_writer
     txt_file = "fields.txt"
@@ -30,11 +32,37 @@ def get_fields():
         write_dict(fields_dict)
 
 def read_table():
-    df = pd.read_excel(delay_table)
+## read excel-table with train delays
+    dtype_dict = {
+        'Datum' : 'str',
+        'Status' : 'str',
+        ## fix! Cant read the column
+        #'Abgebrochen' : 'str',
+        'Start' : 'str',
+        'Ziel' : 'str',
+        'Zug Plan' : 'str',
+        'Abfahrt Plan' : 'str',
+        'Ankunft Plan' : 'str',
+        'Zug Tats'  : 'str',
+        'Ankunft Tats' : 'str'
+    }
+    usecols = list(dtype_dict.keys())
+    df = pd.read_excel(delay_table, usecols=usecols, dtype=dtype_dict)
     df = df.loc[df['Status'] == 'test']
-    df['Datum'] = df['Datum'].dt.strftime('%Y-%m-%d')
+
+    ## hier weiter machen und alle Spalten definieren!
+    df_values = pd.DataFrame()
+    df_values["Reisedatum Tag (TT)"] = df['Datum'].str[8:10]
+    df_values["Reisedatum Monat (MM)"] = df['Datum'].str[5:7]
+    df_values["Reisedatum Jahr (JJ)"] = df['Datum'].str[2:4]
+    df_values["Startbahnhof"] = df['Start']
+    df_values["Abfahrt laut Fahrplan Stunde (HH)"] = df["Abfahrt Plan"].str[0:2]
+    df_values["Abfahrt laut Fahrplan Stunde (MM)"] = df["Abfahrt Plan"].str[3:5]
+    df_values["Zielbahnhof"] = df['Ziel']
+
+    ## brauche ich eigentlich nicht mehr, nur noch für Beschreibungen
     ls = [
-            df['Datum'],#.dt.day.to_list(),       #Reisedatum Tag (TT)
+            df['Datum'],    #Reisedatum Tag (TT)
             'Test',       #Reisedatum Monat (MM)
             'Test',       #Reisedatum Jahr (JJ)
             'Test',     #Startbahnhof
@@ -55,14 +83,15 @@ def read_table():
             'Test',    #Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Stunde (HH)
             'Test'     #Erster versp�teter/ausgefallener Zug � Abfahrt laut Fahrplan Minute (MM),
     ]
-    print(ls)
+    #print(df_values)
+    return(df_values)
 
-def get_params(page_num):
+def get_params(page_num, table_item):
     params = [
         {
-            'S1F1': '01',       #Reisedatum Tag (TT)
-            'S1F2': '01',       #Reisedatum Monat (MM)
-            'S1F3': '24',       #Reisedatum Jahr (JJ)
+            'S1F1': table_item["Reisedatum Tag (TT)"],
+            'S1F2': table_item["Reisedatum Monat (MM)"],
+            'S1F3': table_item["Reisedatum Jahr (JJ)"],
             'S1F4': 'Test',     #Startbahnhof
             'S1F5': 'Test',     #Abfahrt laut Fahrplan Stunde (HH)
             'S1F6': 'Test',     #Abfahrt laut Fahrplan Minute (MM)
@@ -88,22 +117,41 @@ def get_params(page_num):
     return params[page_num]
 
 def write_values():
-    for page in pdf_reader.pages:
-        page_num = pdf_reader.getPageNumber(page)
-        pdf_writer.add_page(page)
+    delay_table = read_table()
+    ## iterate over the rows of the delay excel table
+    for _index, row in delay_table.iterrows():
+        ## iterate over pages of the pdf formular
+        for page in pdf_reader.pages:
+            page_num = pdf_reader.getPageNumber(page)
+            pdf_writer.add_page(page)
 
-        params = get_params(page_num)
-        if page_num == 0: title = "-".join([params["S1F1"], params["S1F2"],params["S1F3"]])
+            ## pass the values of the delay table in the right format for the formular
+            params = get_params(page_num, row)
 
-        pdf_writer.update_page_form_field_values(
-            pdf_writer.pages[page_num], params
-        )
+            ## define file name from date of delay item
+            if page_num == 0: title = "-".join([params["S1F1"], params["S1F2"],params["S1F3"]])
 
-        with open(title + ".pdf", "wb") as output_stream:
-            pdf_writer.write(output_stream)
+            ## write
+            pdf_writer.update_page_form_field_values(
+                pdf_writer.pages[page_num], params
+            )
+            with open(title + ".pdf", "wb") as output_stream:
+                pdf_writer.write(output_stream)
 
-##main
+def test_function():
+    delay_table = read_table()
+    for index, row in delay_table.iterrows():
+        for page in pdf_reader.pages:
+            page_num = pdf_reader.getPageNumber(page)
+            pdf_writer.add_page(page)
+
+            params = get_params(page_num, row)
+            print(params)
+
+#main
 init()
-#get_fields()   #Eingabefelder aus Dokument auslesen und in txt-Datei schreiben
-#write_values()
-read_table()
+write_values()
+
+##zum Parameter auslesen
+#read_table()
+#get_fields()
