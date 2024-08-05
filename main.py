@@ -36,8 +36,7 @@ def read_table():
     dtype_dict = {
         'Datum' : 'str',
         'Status' : 'str',
-        ## fix! Cant read the column
-        #'Abgebrochen' : 'str',
+        'Abgebrochen' : 'str',
         'Start' : 'str',
         'Ziel' : 'str',
         'Zug Plan' : 'str',
@@ -50,40 +49,28 @@ def read_table():
     df = pd.read_excel(delay_table, usecols=usecols, dtype=dtype_dict)
     df = df.loc[df['Status'] == 'test']
 
-    ## hier weiter machen und alle Spalten definieren!
     df_values = pd.DataFrame()
     df_values["Reisedatum Tag (TT)"] = df['Datum'].str[8:10]
     df_values["Reisedatum Monat (MM)"] = df['Datum'].str[5:7]
     df_values["Reisedatum Jahr (JJ)"] = df['Datum'].str[2:4]
     df_values["Startbahnhof"] = df['Start']
     df_values["Abfahrt laut Fahrplan Stunde (HH)"] = df["Abfahrt Plan"].str[0:2]
-    df_values["Abfahrt laut Fahrplan Stunde (MM)"] = df["Abfahrt Plan"].str[3:5]
+    df_values["Abfahrt laut Fahrplan Minute (MM)"] = df["Abfahrt Plan"].str[3:5]
     df_values["Zielbahnhof"] = df['Ziel']
+    df_values["Ankunftszeit laut Fahrplan Stunde (HH)"] = df["Ankunft Plan"].str[0:2]
+    df_values["Ankunftszeit laut Fahrplan Minute (MM)"] = df["Ankunft Plan"].str[3:5]
+    df_values["Ankunftsdatum Tag (TT)"] = df['Datum'].str[8:10]
+    df_values["Ankunftsdatum Monat (MM)"] = df['Datum'].str[5:7]
+    df_values["Ankunftsdatum Jahr (JJ)"] = df['Datum'].str[2:4]
+    df_values["Angekommen bin ich mit Zug Zugart (ICE/IC/RE/RB etc.)"] = df['Zug Tats'].str.split().str[0]
+    df_values["Angekommen bin ich mit Zug Zugnummer"] = df['Zug Tats'].str.split().str[1]
+    df_values["tatsächliche Ankunft Stunde (HH)"] = df["Ankunft Tats"].str[0:2]
+    df_values["tatsächliche Ankunft Minute (MM)"] = df["Ankunft Tats"].str[3:5]
+    df_values["Erster verspäteter/ausgefallener Zug Zugart (ICE/IC/RE/RB etc.)"] = df['Zug Plan'].str.split().str[0]
+    df_values["Erster verspäteter/ausgefallener Zug Zugnummer"] = df['Zug Plan'].str.split().str[1]
+    df_values["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Stunde (HH)"] = df["Abfahrt Plan"].str[0:2]
+    df_values["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Minute (MM)"] = df["Abfahrt Plan"].str[3:5]
 
-    ## brauche ich eigentlich nicht mehr, nur noch für Beschreibungen
-    ls = [
-            df['Datum'],    #Reisedatum Tag (TT)
-            'Test',       #Reisedatum Monat (MM)
-            'Test',       #Reisedatum Jahr (JJ)
-            'Test',     #Startbahnhof
-            'Test',     #Abfahrt laut Fahrplan Stunde (HH)
-            'Test',     #Abfahrt laut Fahrplan Minute (MM)
-            'Test',     #Zielbahnhof
-            'Test',     #Ankunftszeit laut Fahrplan Stunde (HH)
-            'Test',     #Ankunftszeit laut Fahrplan Minute (MM)
-            'Test',    #Ankunftsdatum Tag (TT)
-            'Test',    #Ankunftsdatum Monat (MM)
-            'Test',    #Ankunftsdatum Jahr (JJ)
-            'Test',    #Angekommen bin ich mit Zug Zugart (ICE/IC/RE/RB etc.)
-            'Test',    #Angekommen bin ich mit Zug Zugnummer
-            'Test',    #tatsächliche Ankunft Stunde (HH)
-            'Test',    #tatsächliche Ankunft Minute (MM)
-            'Test',    #Erster verspäteter/ausgefallener Zug Zugart (ICE/IC/RE/RB etc.)
-            'Test',    #Erster verspäteter/ausgefallener Zug Zugnummer
-            'Test',    #Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Stunde (HH)
-            'Test'     #Erster versp�teter/ausgefallener Zug � Abfahrt laut Fahrplan Minute (MM),
-    ]
-    #print(df_values)
     return(df_values)
 
 def get_params(page_num, table_item):
@@ -92,26 +79,27 @@ def get_params(page_num, table_item):
             'S1F1': table_item["Reisedatum Tag (TT)"],
             'S1F2': table_item["Reisedatum Monat (MM)"],
             'S1F3': table_item["Reisedatum Jahr (JJ)"],
-            'S1F4': 'Test',     #Startbahnhof
-            'S1F5': 'Test',     #Abfahrt laut Fahrplan Stunde (HH)
-            'S1F6': 'Test',     #Abfahrt laut Fahrplan Minute (MM)
-            'S1F7': 'Test',     #Zielbahnhof
-            'S1F8': 'Test',     #Ankunftszeit laut Fahrplan Stunde (HH)
-            'S1F9': 'Test',     #Ankunftszeit laut Fahrplan Minute (MM)
-            'S1F10': 'Test',    #Ankunftsdatum Tag (TT)
-            'S1F11': 'Test',    #Ankunftsdatum Monat (MM)
-            'S1F12': 'Test',    #Ankunftsdatum Jahr (JJ)
-            'S1F13': 'Test',    #Angekommen bin ich mit Zug Zugart (ICE/IC/RE/RB etc.)
-            'S1F14': 'Test',    #Angekommen bin ich mit Zug Zugnummer
-            'S1F15': 'Test',    #tatsächliche Ankunft Stunde (HH)
-            'S1F16': 'Test',    #tatsächliche Ankunft Minute (MM)
-            'S1F17': 'Test',    #Erster verspäteter/ausgefallener Zug Zugart (ICE/IC/RE/RB etc.)
-            'S1F18': 'Test',    #Erster verspäteter/ausgefallener Zug Zugnummer
-            'S1F19': 'Test',    #Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Stunde (HH)
-            'S1F20': 'Test'     #Erster versp�teter/ausgefallener Zug � Abfahrt laut Fahrplan Minute (MM),
+            'S1F4': table_item["Startbahnhof"],
+            'S1F5': table_item["Abfahrt laut Fahrplan Stunde (HH)"],
+            'S1F6': table_item["Abfahrt laut Fahrplan Minute (MM)"],
+            'S1F7': table_item["Zielbahnhof"],
+            'S1F8': table_item["Ankunftszeit laut Fahrplan Stunde (HH)"],
+            'S1F9': table_item["Ankunftszeit laut Fahrplan Minute (MM)"],
+            'S1F10': table_item["Ankunftsdatum Tag (TT)"],
+            'S1F11': table_item["Ankunftsdatum Monat (MM)"],
+            'S1F12': table_item["Ankunftsdatum Jahr (JJ)"],
+            'S1F13': table_item["Angekommen bin ich mit Zug Zugart (ICE/IC/RE/RB etc.)"],
+            'S1F14': table_item["Angekommen bin ich mit Zug Zugnummer"],
+            'S1F15': table_item["tatsächliche Ankunft Stunde (HH)"],
+            'S1F16': table_item["tatsächliche Ankunft Minute (MM)"],
+            'S1F17': table_item["Erster verspäteter/ausgefallener Zug Zugart (ICE/IC/RE/RB etc.)"],
+            'S1F18': table_item["Erster verspäteter/ausgefallener Zug Zugnummer"],
+            'S1F19': table_item["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Stunde (HH)"],
+            'S1F20': table_item["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Minute (MM)"]
         },
         {
-            'S2F4': 'Test'   #Name (Nachname)
+            #Direkt in Vorlage PDF ausgefüllt
+            #'S2F4': 'Test'   #Name (Nachname)
         }
     ]
     return params[page_num]
@@ -147,6 +135,10 @@ def test_function():
 
             params = get_params(page_num, row)
             print(params)
+
+##todo
+# Wenn Zug komplett ausgefallen ist, Funktion erstellen
+
 
 #main
 init()
