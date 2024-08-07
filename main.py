@@ -47,7 +47,7 @@ def read_table():
     }
     usecols = list(dtype_dict.keys())
     df = pd.read_excel(delay_table, usecols=usecols, dtype=dtype_dict)
-    df = df.loc[df['Status'] == 'test']
+    df = df.loc[df['Status'] == 'offen']
 
     df_values = pd.DataFrame()
     df_values["Reisedatum Tag (TT)"] = df['Datum'].str[8:10]
@@ -70,6 +70,7 @@ def read_table():
     df_values["Erster verspäteter/ausgefallener Zug Zugnummer"] = df['Zug Plan'].str.split().str[1]
     df_values["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Stunde (HH)"] = df["Abfahrt Plan"].str[0:2]
     df_values["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Minute (MM)"] = df["Abfahrt Plan"].str[3:5]
+    df_values["Abgebrochen"] = df["Abgebrochen"]
 
     return(df_values)
 
@@ -95,13 +96,22 @@ def get_params(page_num, table_item):
             'S1F17': table_item["Erster verspäteter/ausgefallener Zug Zugart (ICE/IC/RE/RB etc.)"],
             'S1F18': table_item["Erster verspäteter/ausgefallener Zug Zugnummer"],
             'S1F19': table_item["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Stunde (HH)"],
-            'S1F20': table_item["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Minute (MM)"]
+            'S1F20': table_item["Erster verspäteter/ausgefallener Zug Abfahrt laut Fahrplan Minute (MM)"],
+            'S1F25': "/Ja"
         },
         {
             #Direkt in Vorlage PDF ausgefüllt
             #'S2F4': 'Test'   #Name (Nachname)
         }
     ]
+    if table_item["Abgebrochen"] == "x":
+        params[0]["S1F10"] = ""
+        params[0]["S1F11"] = ""
+        params[0]["S1F12"] = ""
+        params[0]["S1F13"] = ""
+        params[0]["S1F14"] = ""
+        params[0]["S1F15"] = ""
+        params[0]["S1F16"] = ""
     return params[page_num]
 
 def write_values():
@@ -117,7 +127,7 @@ def write_values():
             params = get_params(page_num, row)
 
             ## define file name from date of delay item
-            if page_num == 0: title = "-".join([params["S1F1"], params["S1F2"],params["S1F3"]])
+            if page_num == 0: title = "-".join([params["S1F1"], params["S1F2"],params["S1F3"],params["S1F17"],params["S1F18"]])
 
             ## write
             pdf_writer.update_page_form_field_values(
@@ -125,16 +135,7 @@ def write_values():
             )
             with open(title + ".pdf", "wb") as output_stream:
                 pdf_writer.write(output_stream)
-
-def test_function():
-    delay_table = read_table()
-    for index, row in delay_table.iterrows():
-        for page in pdf_reader.pages:
-            page_num = pdf_reader.getPageNumber(page)
-            pdf_writer.add_page(page)
-
-            params = get_params(page_num, row)
-            print(params)
+    print("saved", len(delay_table), "files")
 
 ##todo
 # Wenn Zug komplett ausgefallen ist, Funktion erstellen
@@ -145,5 +146,4 @@ init()
 write_values()
 
 ##zum Parameter auslesen
-#read_table()
 #get_fields()
