@@ -137,9 +137,6 @@ def write_values():
                 pdf_writer.write(output_stream)
     print("saved", len(delay_table), "files")
 
-##todo
-# Wenn Zug komplett ausgefallen ist, Funktion erstellen
-
 
 #main
 init()
