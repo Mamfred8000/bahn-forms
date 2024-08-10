@@ -1,0 +1,10 @@
+# Ignore everything by default
+*
+
+# But not these files...
+!*.py
+!*.ipynb
+!*.gitignore
+
+# And not these directories...
+# !*/
