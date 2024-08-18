@@ -118,6 +118,7 @@ def write_values():
     delay_table = read_table()
     ## iterate over the rows of the delay excel table
     for _index, row in delay_table.iterrows():
+        pdf_writer = PdfWriter()
         ## iterate over pages of the pdf formular
         for page in pdf_reader.pages:
             page_num = pdf_reader.getPageNumber(page)
